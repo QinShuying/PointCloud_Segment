@@ -38,15 +38,14 @@ int main (int argc, char** argv)
 
     // Load data points
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    string seq = "01";
-    string filename = "/home/qsy-5208/Documents/PointCloud_Segment/Data/global_pcs/secen_pcd"+seq+".pcd";
+    string seq = "02";
+    string filename = "./global_pcs/secen_pcd"+seq+".pcd";
     ReadData(filename, cloud);
 
 
     // Region Segment
     //设置搜索结构
-    pcl::search::Search<pcl::PointXYZ>::Ptr tree = boost::shared_ptr<pcl::search::Search<pcl::PointXYZ> > (new pcl::search::KdTree<pcl::PointXYZ>);
-
+    pcl::search::Search<pcl::PointXYZ>::Ptr tree = shared_ptr<pcl::search::Search<pcl::PointXYZ> > (new pcl::search::KdTree<pcl::PointXYZ>);
     //法线
     pcl::PointCloud <pcl::Normal>::Ptr normals (new pcl::PointCloud <pcl::Normal>);
     pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normal_estimator;
@@ -77,14 +76,10 @@ int main (int argc, char** argv)
     std::vector <pcl::PointIndices> clusters;
     reg.extract (clusters);
 
-//    cerr << "Region_based_seg, Cluster Number： " << clusters.size () << endl;
-//    cerr << "First cluster has " << clusters[0].indices.size () << " points." << endl;
-
-
     // Save pcd
     pcl::PCDWriter writer;
     pcl::PointCloud <pcl::PointXYZRGB>::Ptr colored_cloud = reg.getColoredCloud ();
-    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/Results/region"+seq+".pcd", *colored_cloud, false);
+    writer.write ("./result/region"+seq+".pcd", *colored_cloud, false);
 
 
     endTime = clock();

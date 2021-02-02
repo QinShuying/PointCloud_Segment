@@ -33,8 +33,8 @@ int main (int argc, char** argv)
 
     // Load data points
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    string seq = "01";
-    string filename = "/home/qsy-5208/Documents/PointCloud_Segment/Data/global_pcs/secen_pcd"+seq+".pcd";
+    string seq = "02";
+    string filename = "./global_pcs/secen_pcd"+seq+".pcd";
     ReadData(filename, cloud);
 
 
@@ -109,12 +109,9 @@ int main (int argc, char** argv)
         cloud_cluster->width = cloud_cluster->points.size ();
         cloud_cluster->height = 1;
         cloud_cluster->is_dense = true;
-
-//        cerr << "Euclidean_based_seg, Cluster Number： " << cloud_cluster->size () << endl;
-
         pcl::PCDWriter writer;
         stringstream ss;
-        ss << "/home/qsy-5208/Documents/PointCloud_Segment/Results/Euclidean/Euclidean_cloud_cluster_" << j << ".pcd";
+        ss << "./result/Euclidean/Euclidean_cloud_cluster_" << j << ".pcd";
         writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false);
         j++;
     }
@@ -122,7 +119,7 @@ int main (int argc, char** argv)
 
     // Save pcd
     pcl::PCDWriter writer;
-    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/Results/Euclidean"+seq+".pcd", *cloud_filtered, false);
+    writer.write ("./result/Euclidean"+seq+".pcd", *cloud_filtered, false);
 
 
     endTime = clock();
