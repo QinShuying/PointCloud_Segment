@@ -5,29 +5,11 @@
  * */
 
 
-#include <iostream>
-#include <ctime>
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-
-#include <pcl/ModelCoefficients.h>
-#include <pcl/sample_consensus/method_types.h>
-#include <pcl/sample_consensus/model_types.h>
-#include <pcl/segmentation/sac_segmentation.h>
-#include <pcl/filters/extract_indices.h>
-
-#include <vector>
-#include <pcl/search/search.h>
-#include <pcl/search/kdtree.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/visualization/cloud_viewer.h>
-#include <pcl/filters/passthrough.h>
-#include <pcl/segmentation/region_growing.h>
-
-using namespace std;
+#include "include/seg.h"
+#include "include/datapretreat.h"
 
 
-void ReadData(std::string &in_file, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+//void ReadData(std::string &in_file, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 
 
 int main (int argc, char** argv)
@@ -38,9 +20,10 @@ int main (int argc, char** argv)
 
     // Load data points
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    string seq = "02";
-    string filename = "./global_pcs/secen_pcd"+seq+".pcd";
-    ReadData(filename, cloud);
+    string seq = "01";
+    string filename = "/home/qsy-5208/Documents/PointCloud_Segment/Data/global_pcs/secen_pcd"+seq+".pcd";
+    datapretreat d;
+    d.ReadData(filename, cloud);
 
 
     // Region Segment
@@ -88,23 +71,23 @@ int main (int argc, char** argv)
 }
 
 
-void ReadData(std::string &in_file, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud) {
-
-    if (pcl::io::loadPCDFile<pcl::PointXYZ> (in_file, *cloud) == -1)
-    {
-        PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
-    }
-
-    cout << "Loaded "
-         << cloud->width * cloud->height
-         << " data points from test_file.pcd with the following fields: "
-         << endl;
-
-    /*
-    //for (size_t i = 0; i < cloud->points.size (); ++i) //显示所有的点
-    for (size_t i = 0; i < 5; ++i)
-        cout << "    " << cloud->points[i].x
-                  << " "    << cloud->points[i].y
-                  << " "    << cloud->points[i].z << endl;
-    */
-}
+//void ReadData(std::string &in_file, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud) {
+//
+//    if (pcl::io::loadPCDFile<pcl::PointXYZ> (in_file, *cloud) == -1)
+//    {
+//        PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
+//    }
+//
+//    cout << "Loaded "
+//         << cloud->width * cloud->height
+//         << " data points from test_file.pcd with the following fields: "
+//         << endl;
+//
+//    /*
+//    //for (size_t i = 0; i < cloud->points.size (); ++i) //显示所有的点
+//    for (size_t i = 0; i < 5; ++i)
+//        cout << "    " << cloud->points[i].x
+//                  << " "    << cloud->points[i].y
+//                  << " "    << cloud->points[i].z << endl;
+//    */
+//}
