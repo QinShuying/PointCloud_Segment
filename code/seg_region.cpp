@@ -17,7 +17,7 @@ int main (int argc, char** argv)
 
     // Load data points
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    string seq = "01";
+    string seq = "04";
     string filename = "/home/qsy-5208/Documents/PointCloud_Segment/global_pcs/secen_pcd"+seq+".pcd";
     datapretreat d;
     d.ReadData(filename, cloud);

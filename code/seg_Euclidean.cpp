@@ -13,11 +13,12 @@ int main (int argc, char** argv)
 {
     clock_t startTime,endTime;
     startTime = clock();
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr colored_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);     //最终结果
 
 
     // Load data points
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    string seq = "01";
+    string seq = "04";
     string filename = "/home/qsy-5208/Documents/PointCloud_Segment/global_pcs/secen_pcd"+seq+".pcd";
     datapretreat d;
     d.ReadData(filename, cloud);
@@ -40,48 +41,61 @@ int main (int argc, char** argv)
     seg.setModelType (pcl::SACMODEL_PLANE);
     seg.setMethodType (pcl::SAC_RANSAC);
     seg.setMaxIterations (100);
-    seg.setDistanceThreshold (0.02);        //设置阀值
+    seg.setDistanceThreshold (0.02);        //阀值
 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr colored_cloud (new pcl::PointCloud<pcl::PointXYZ>);     //最终结果
-    int i=0;
-    int nr_points = (int) cloud_filtered->points.size ();   //剩余点云数量
-    // 每一次循环得到一个平面
-    while (cloud_filtered->points.size () > 0.3 * nr_points)
+
+    // 每一次循环提取一个平面
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZ>);
+    *cloud_plane = *cloud_filtered;
+    int nr_points = (int) cloud_filtered->points.size ();   //降采样后剩余点云数量
+    int r, g, b;
+//    while (cloud_filtered->points.size () > 0.3 * nr_points)    //原：每次去掉一个平面后的剩余点数>阈值，问题：可能存在很多杂点却依然在循环
+    while (cloud_plane->size() > 0.03 * nr_points)  //现：提取的平面点数>阈值
     {
-        // 从剩余点云中再分割出最大的平面分量 （因为我们要处理的点云的数据是两个平面的存在的）
+        // 从剩余点云中再分割出当前最大平面分量
         seg.setInputCloud (cloud_filtered);
         seg.segment (*inliers, *coefficients);
-        if (inliers->indices.size () == 0) //如果内点的数量已经等于0，就说明没有
+        if (inliers->indices.size () == 0)
         {
             cout << "Could not estimate a planar model for the given dataset." << endl;
             break;
         }
 
         // 提取平面模型内点
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZ>);
         pcl::ExtractIndices<pcl::PointXYZ> extract;
         extract.setInputCloud (cloud_filtered);
         extract.setIndices (inliers);
         extract.setNegative (false);
         extract.filter (*cloud_plane);
-//        cerr << "After extracting the planar inliers, cloud_plane->size: " << cloud_plane->size() << endl;
-        *colored_cloud += *cloud_plane;
+//        cerr << "cloud_plane->size: " << cloud_plane->size() << endl;
 
-        // 可视化每一个平面
-//        boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
-//        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> single_color(cloud, 0, 255, 0); // green
-//        viewer->addPointCloud<pcl::PointXYZ>(colored_cloud, single_color, "sample cloud");
-//        while (!viewer->wasStopped())
-//        {
-//            viewer->spinOnce(100);
-//            boost::this_thread::sleep(boost::posix_time::microseconds(100000));
-//        }
+        //复制当前平面至最终结果
+        r = rand() % 255;
+        g = rand() % 255;
+        b = rand() % 255;
+        for (int k=0; k<cloud_plane->size(); k++) {
+            pcl::PointXYZRGB point;
+            point.x = cloud_plane->points[k].x;
+            point.y = cloud_plane->points[k].y;
+            point.z = cloud_plane->points[k].z;
+            point.r = r;
+            point.g = g;
+            point.b = b;
+            colored_cloud->points.push_back(point);
+        }
+        // 每一次的可视化
+//        pcl::visualization::CloudViewer viewer("cloud_plane");
+//        viewer.showCloud(colored_cloud);
+//        while (!viewer.wasStopped()) {}
+
 
         // 过滤平面点，得到剩余点云
         extract.setNegative (true);
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
         extract.filter (*cloud_f);
         *cloud_filtered = *cloud_f;
+
+//        cerr << "After extracting the planar inliers, cloud_filtered.size = " << cloud_filtered->points.size() << endl;
     }
 
 
@@ -91,12 +105,12 @@ int main (int argc, char** argv)
 
     std::vector<pcl::PointIndices> cluster_indices;
     pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-    ec.setClusterTolerance (0.02);      //近邻搜索半径
+    ec.setClusterTolerance (0.02);            //近邻搜索半径
     ec.setMinClusterSize (100);         //最小聚类点数
     ec.setMaxClusterSize (25000);       //最大
     ec.setSearchMethod (tree);
     ec.setInputCloud (cloud_filtered);
-    ec.extract (cluster_indices);           //从点云中提取聚类，并将点云索引保存在cluster_indices中
+    ec.extract (cluster_indices);
 
     //迭代访问点云索引cluster_indices,直到分割处所有聚类
     int j = 0;
@@ -109,18 +123,35 @@ int main (int argc, char** argv)
         cloud_cluster->height = 1;
         cloud_cluster->is_dense = true;
 
+        //保存当前聚类
         pcl::PCDWriter writer;
         stringstream ss;
         ss << "/home/qsy-5208/Documents/PointCloud_Segment/result/Euclidean/"+seq+"/Euclidean_cloud_cluster_" << j << ".pcd";
         writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false);
 
+        //复制当前聚类至最终结果
+        r = rand() % 255;
+        g = rand() % 255;
+        b = rand() % 255;
+        for (int k=0; k<cloud_cluster->size(); k++) {
+            pcl::PointXYZRGB point;
+            point.x = cloud_cluster->points[k].x;
+            point.y = cloud_cluster->points[k].y;
+            point.z = cloud_cluster->points[k].z;
+            point.r = r;
+            point.g = g;
+            point.b = b;
+            colored_cloud->points.push_back(point);
+        }
+
         j++;
-        *colored_cloud += *cloud_cluster;
     }
 
 
     // Save pcd
     pcl::PCDWriter writer;
+    colored_cloud->height = 1;
+    colored_cloud->width = colored_cloud->size();
     writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/result/Euclidean"+seq+".pcd", *colored_cloud, false);
 
     // Visualize
