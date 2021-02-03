@@ -13,8 +13,6 @@
 
 int main (int argc, char** argv)
 {
-    clock_t startTime,endTime;
-    startTime = clock();
 
 
     // Load data points
@@ -25,24 +23,17 @@ int main (int argc, char** argv)
     d.ReadData(filename, cloud);
 
 
+    clock_t startTime,endTime;
+    startTime = clock();
     //设置搜索结构
     pcl::search::Search<pcl::PointXYZ>::Ptr tree =  shared_ptr<pcl::search::Search<pcl::PointXYZ> > (new pcl::search::KdTree<pcl::PointXYZ>);
-
     //计算点法线
     pcl::PointCloud <pcl::Normal>::Ptr normals (new pcl::PointCloud <pcl::Normal>);
     pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normal_estimator;
     normal_estimator.setSearchMethod (tree);
     normal_estimator.setInputCloud (cloud);
-    normal_estimator.setKSearch (50);       //法向量估计的k近邻数目
+    normal_estimator.setKSearch (20);       //法向量估计的k近邻数目
     normal_estimator.compute (*normals);
-
-    //直通滤波在Z轴的0到1米之间
-    pcl::IndicesPtr indices (new std::vector <int>);
-    pcl::PassThrough<pcl::PointXYZ> pass;
-    pass.setInputCloud (cloud);
-    pass.setFilterFieldName ("z");
-    pass.setFilterLimits (0.0, 1.0);
-    pass.filter (*indices);
 
     //聚类对象<点，法线>
     pcl::RegionGrowing<pcl::PointXYZ, pcl::Normal> reg;

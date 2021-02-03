@@ -34,16 +34,16 @@ int main (int argc, char** argv)
     cout << "After filtering, point cloud->size: " << cloud_filtered->points.size () << endl;
 
     // Euclidean Segment
-    pcl::SACSegmentation<pcl::PointXYZ> seg;
     pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
     pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
 
+    pcl::SACSegmentation<pcl::PointXYZ> seg;
     seg.setOptimizeCoefficients (true);
     seg.setModelType (pcl::SACMODEL_PLANE);
     seg.setMethodType (pcl::SAC_RANSAC);
-    seg.setMaxIterations (100);
+    seg.setMaxIterations (50);
+//    查询点到目标模型的距离阈值（如果大于此阈值，则查询点不在目标模型上，默认值为0）
     seg.setDistanceThreshold (0.02);        //阀值
-
 
     // 每一次循环提取一个平面
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZ>);
@@ -84,29 +84,21 @@ int main (int argc, char** argv)
             point.b = b;
             colored_cloud->points.push_back(point);
         }
-        // 每一次的可视化
-//        pcl::visualization::CloudViewer viewer("cloud_plane");
-//        viewer.showCloud(colored_cloud);
-//        while (!viewer.wasStopped()) {}
-
 
         // 过滤平面点，得到剩余点云
         extract.setNegative (true);
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
         extract.filter (*cloud_f);
         *cloud_filtered = *cloud_f;
-
-//        cout << "After extracting the planar inliers, cloud_filtered.size = " << cloud_filtered->points.size() << endl;
     }
 
 
     // 创建用于提取搜索方法的kdtree树对象
     pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
     tree->setInputCloud (cloud_filtered);
-
     std::vector<pcl::PointIndices> cluster_indices;
     pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-    ec.setClusterTolerance (0.02);            //近邻搜索半径
+    ec.setClusterTolerance (1);            //近邻搜索半径
     ec.setMinClusterSize (100);         //最小聚类点数
     ec.setMaxClusterSize (25000);       //最大
     ec.setSearchMethod (tree);
@@ -123,12 +115,6 @@ int main (int argc, char** argv)
         cloud_cluster->width = cloud_cluster->points.size ();
         cloud_cluster->height = 1;
         cloud_cluster->is_dense = true;
-
-        //保存当前聚类
-        pcl::PCDWriter writer;
-        stringstream ss;
-        ss << WORK_SPACE_PATH+"/result/Euclidean/"+seq+"/Euclidean_cloud_cluster_" << j << ".pcd";
-        writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false);
 
         //复制当前聚类至最终结果
         r = rand() % 255;
