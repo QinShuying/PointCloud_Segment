@@ -38,7 +38,7 @@ int main (int argc, char** argv)
     cerr << "Model coefficients: " << coefficients->values[0] << " "
               <<coefficients->values[1] << " "
               <<coefficients->values[2] << " "
-              <<coefficients->values[3] <<std::endl;    //模型系数
+              <<coefficients->values[3] <<std::endl;
     cerr << "Model inliers: " << inliers->indices.size () << endl;    //估计平面模型过程中使用的内点
 
 
@@ -55,6 +55,11 @@ int main (int argc, char** argv)
     // Save pcd
     pcl::PCDWriter writer;
     writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/result/basic"+seq+".pcd", *cloud_filtered, false);
+
+    // Visualize
+    pcl::visualization::CloudViewer viewer("seg_basic");
+    viewer.showCloud(cloud_filtered);
+    while (!viewer.wasStopped()) {}
 
 
     endTime = clock();
