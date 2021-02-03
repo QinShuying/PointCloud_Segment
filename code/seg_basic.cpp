@@ -1,8 +1,7 @@
-
 #include "include/seg.h"
 #include "include/datapretreat.h"
-
-
+#include "global_defination.h"
+#include "boost/thread.hpp"
 
 int main (int argc, char** argv)
 {
@@ -11,8 +10,8 @@ int main (int argc, char** argv)
 
     // Load data points
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    string seq = "01";
-    string filename = "/home/qsy-5208/Documents/PointCloud_Segment/global_pcs/secen_pcd"+seq+".pcd";
+    string seq = "02";
+    string filename = WORK_SPACE_PATH+"/global_pcs/secen_pcd"+seq+".pcd";
     datapretreat d;
     d.ReadData(filename, cloud);
 
@@ -35,11 +34,11 @@ int main (int argc, char** argv)
         return -1;
     }
 
-    cerr << "Model coefficients: " << coefficients->values[0] << " "
+    cout << "Model coefficients: " << coefficients->values[0] << " "
               <<coefficients->values[1] << " "
               <<coefficients->values[2] << " "
               <<coefficients->values[3] <<std::endl;
-    cerr << "Model inliers: " << inliers->indices.size () << endl;    //估计平面模型过程中使用的内点
+    cout << "Model inliers: " << inliers->indices.size () << endl;    //估计平面模型过程中使用的内点
 
 
     // Extract Indices
@@ -49,20 +48,25 @@ int main (int argc, char** argv)
     extract.setIndices(inliers);
     extract.setNegative(true);
     extract.filter(*cloud_filtered);
-    cerr << "After extracting the planar inliers, point cloud->size: " << cloud_filtered->size() << endl;
-
-
-    // Save pcd
-    pcl::PCDWriter writer;
-    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/result/basic"+seq+".pcd", *cloud_filtered, false);
-
-    // Visualize
-    pcl::visualization::CloudViewer viewer("seg_basic");
-    viewer.showCloud(cloud_filtered);
-    while (!viewer.wasStopped()) {}
-
+    cout << "After extracting the planar inliers, point cloud->size: " << cloud_filtered->size() << endl;
 
     endTime = clock();
     cout << "The run time is:" <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+
+    // Save pcd
+    pcl::PCDWriter writer;
+    writer.write (WORK_SPACE_PATH+"/result/basic"+seq+".pcd", *cloud_filtered, false);
+
+    // Visualize
+    boost::shared_ptr< pcl::visualization::PCLVisualizer > viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+    viewer->initCameraParameters();
+    viewer->setBackgroundColor(0, 0, 0);
+    viewer->addPointCloud(cloud_filtered, "sample cloud");
+    viewer->addCoordinateSystem(0.2);
+    while (!viewer->wasStopped()) {
+        viewer->spinOnce(100);
+        boost::this_thread::sleep(boost::posix_time::microseconds(1000));
+    }
+
     return 0;
 }

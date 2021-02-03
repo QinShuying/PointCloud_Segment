@@ -3,13 +3,17 @@ project(PointCloud_Segment)
 
 set(CMAKE_CXX_STANDARD 14)
 
-
-
 find_package(PCL REQUIRED)
-
 add_definitions(${PCL_DEFINITIONS})
 
+find_package(Boost REQUIRED COMPONENTS regex thread system filesystem)
+add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
 
+include_directories(
+        ${Boost_INCLUDE_DIRS}
+)
+
+include(cmake/global_defination.cmake)
 include_directories(
         include
         ${PROJECT_SOURCE_DIR}
@@ -26,6 +30,7 @@ target_link_libraries(${PROJECT_NAME}
         ${PCL_LIBRARY_DIRS}
         ${PCL_LIBRARIES}
         ${catkin_LIBRARIES}
+        ${Boost_LIBRARIES}
         )
 
 add_executable(seg_basic code/seg_basic.cpp)
