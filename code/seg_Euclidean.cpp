@@ -1,6 +1,7 @@
 /*
  * 基于 欧式距离 的分割
  * 使用邻居之间距离作为判定标准
+ * https://www.cnblogs.com/li-yao7758258/p/6694873.html
  * */
 
 
@@ -18,7 +19,7 @@ int main (int argc, char** argv)
 
     // Load data points
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    string seq = "04";
+    string seq = "02";
     string filename = "/home/qsy-5208/Documents/PointCloud_Segment/global_pcs/secen_pcd"+seq+".pcd";
     datapretreat d;
     d.ReadData(filename, cloud);
@@ -41,7 +42,8 @@ int main (int argc, char** argv)
     seg.setModelType (pcl::SACMODEL_PLANE);
     seg.setMethodType (pcl::SAC_RANSAC);
     seg.setMaxIterations (100);
-    seg.setDistanceThreshold (0.02);        //阀值
+    double DistanceThreshold = 0.05;    //0.02
+    seg.setDistanceThreshold (DistanceThreshold);        //阀值
 
 
     // 每一次循环提取一个平面
@@ -50,7 +52,7 @@ int main (int argc, char** argv)
     int nr_points = (int) cloud_filtered->points.size ();   //降采样后剩余点云数量
     int r, g, b;
 //    while (cloud_filtered->points.size () > 0.3 * nr_points)    //原：每次去掉一个平面后的剩余点数>阈值，问题：可能存在很多杂点却依然在循环
-    while (cloud_plane->size() > 0.03 * nr_points)  //现：提取的平面点数>阈值
+    while (cloud_plane->size() > 0.03 * nr_points)  //现：提取的当前平面点数>阈值
     {
         // 从剩余点云中再分割出当前最大平面分量
         seg.setInputCloud (cloud_filtered);
@@ -122,6 +124,7 @@ int main (int argc, char** argv)
         cloud_cluster->width = cloud_cluster->points.size ();
         cloud_cluster->height = 1;
         cloud_cluster->is_dense = true;
+        cerr << "cloud_cluster->points.size:" << cloud_cluster->points.size() << endl;
 
         //保存当前聚类
         pcl::PCDWriter writer;
@@ -152,7 +155,9 @@ int main (int argc, char** argv)
     pcl::PCDWriter writer;
     colored_cloud->height = 1;
     colored_cloud->width = colored_cloud->size();
-    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/result/Euclidean"+seq+".pcd", *colored_cloud, false);
+    char buffer[20];
+    gcvt(DistanceThreshold, 3, buffer);
+    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/result/Euclidean"+seq+"_Dis"+buffer+".pcd", *colored_cloud, false);
 
     // Visualize
     pcl::visualization::CloudViewer viewer("seg_Euclidean");
