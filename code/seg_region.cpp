@@ -7,6 +7,8 @@
 
 #include "include/seg.h"
 #include "include/datapretreat.h"
+#include "global_defination.h"
+#include "boost/thread.hpp"
 
 
 int main (int argc, char** argv)
@@ -17,14 +19,14 @@ int main (int argc, char** argv)
 
     // Load data points
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    string seq = "04";
-    string filename = "/home/qsy-5208/Documents/PointCloud_Segment/global_pcs/secen_pcd"+seq+".pcd";
+    string seq = "02";
+    string filename = WORK_SPACE_PATH+"/global_pcs/secen_pcd"+seq+".pcd";
     datapretreat d;
     d.ReadData(filename, cloud);
 
 
     //设置搜索结构
-    pcl::search::Search<pcl::PointXYZ>::Ptr tree =  boost::shared_ptr<pcl::search::Search<pcl::PointXYZ> > (new pcl::search::KdTree<pcl::PointXYZ>);
+    pcl::search::Search<pcl::PointXYZ>::Ptr tree =  shared_ptr<pcl::search::Search<pcl::PointXYZ> > (new pcl::search::KdTree<pcl::PointXYZ>);
 
     //计算点法线
     pcl::PointCloud <pcl::Normal>::Ptr normals (new pcl::PointCloud <pcl::Normal>);
@@ -56,20 +58,26 @@ int main (int argc, char** argv)
     std::vector <pcl::PointIndices> clusters;
     reg.extract (clusters);
 
+    endTime = clock();
+    cout << "The run time is:" <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
     // Save pcd
     pcl::PCDWriter writer;
     pcl::PointCloud <pcl::PointXYZRGB>::Ptr colored_cloud = reg.getColoredCloud ();
-    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/result/region"+seq+".pcd", *colored_cloud, false);
+    writer.write (WORK_SPACE_PATH+"/result/region"+seq+".pcd", *colored_cloud, false);
 
     // Visualize
-    pcl::visualization::CloudViewer viewer("seg_region");
-    viewer.showCloud(colored_cloud);
-    while (!viewer.wasStopped()) {}
+    boost::shared_ptr< pcl::visualization::PCLVisualizer > viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+    viewer->initCameraParameters();
+    viewer->setBackgroundColor(0, 0, 0);
+    viewer->addPointCloud(colored_cloud, "sample cloud");
+    viewer->addCoordinateSystem(0.2);
+    while (!viewer->wasStopped()) {
+        viewer->spinOnce(100);
+        boost::this_thread::sleep(boost::posix_time::microseconds(1000));
+    }
 
 
-    endTime = clock();
-    cout << "The run time is:" <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
     return 0;
 }
 

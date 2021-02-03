@@ -6,7 +6,8 @@
 
 #include "include/seg.h"
 #include "include/datapretreat.h"
-
+#include "boost/thread.hpp"
+#include "global_defination.h"
 
 
 int main (int argc, char** argv)
@@ -18,8 +19,8 @@ int main (int argc, char** argv)
 
     // Load data points
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    string seq = "04";
-    string filename = "/home/qsy-5208/Documents/PointCloud_Segment/global_pcs/secen_pcd"+seq+".pcd";
+    string seq = "02";
+    string filename = WORK_SPACE_PATH+"/global_pcs/secen_pcd"+seq+".pcd";
     datapretreat d;
     d.ReadData(filename, cloud);
 
@@ -30,7 +31,7 @@ int main (int argc, char** argv)
     vg.setInputCloud (cloud);
     vg.setLeafSize (0.01f, 0.01f, 0.01f);
     vg.filter (*cloud_filtered);
-    cerr << "After filtering, point cloud->size: " << cloud_filtered->points.size () << endl;
+    cout << "After filtering, point cloud->size: " << cloud_filtered->points.size () << endl;
 
     // Euclidean Segment
     pcl::SACSegmentation<pcl::PointXYZ> seg;
@@ -67,7 +68,7 @@ int main (int argc, char** argv)
         extract.setIndices (inliers);
         extract.setNegative (false);
         extract.filter (*cloud_plane);
-//        cerr << "cloud_plane->size: " << cloud_plane->size() << endl;
+//        cout << "cloud_plane->size: " << cloud_plane->size() << endl;
 
         //复制当前平面至最终结果
         r = rand() % 255;
@@ -95,7 +96,7 @@ int main (int argc, char** argv)
         extract.filter (*cloud_f);
         *cloud_filtered = *cloud_f;
 
-//        cerr << "After extracting the planar inliers, cloud_filtered.size = " << cloud_filtered->points.size() << endl;
+//        cout << "After extracting the planar inliers, cloud_filtered.size = " << cloud_filtered->points.size() << endl;
     }
 
 
@@ -126,7 +127,7 @@ int main (int argc, char** argv)
         //保存当前聚类
         pcl::PCDWriter writer;
         stringstream ss;
-        ss << "/home/qsy-5208/Documents/PointCloud_Segment/result/Euclidean/"+seq+"/Euclidean_cloud_cluster_" << j << ".pcd";
+        ss << WORK_SPACE_PATH+"/result/Euclidean/"+seq+"/Euclidean_cloud_cluster_" << j << ".pcd";
         writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false);
 
         //复制当前聚类至最终结果
@@ -147,20 +148,26 @@ int main (int argc, char** argv)
         j++;
     }
 
+    endTime = clock();
+    cout << "The run time is:" <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
     // Save pcd
     pcl::PCDWriter writer;
     colored_cloud->height = 1;
     colored_cloud->width = colored_cloud->size();
-    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/result/Euclidean"+seq+".pcd", *colored_cloud, false);
+    writer.write (WORK_SPACE_PATH+"/result/Euclidean"+seq+".pcd", *colored_cloud, false);
 
     // Visualize
-    pcl::visualization::CloudViewer viewer("seg_Euclidean");
-    viewer.showCloud(colored_cloud);
-    while (!viewer.wasStopped()) {}
+    boost::shared_ptr< pcl::visualization::PCLVisualizer > viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+    viewer->initCameraParameters();
+    viewer->setBackgroundColor(0, 0, 0);
+    viewer->addPointCloud(colored_cloud, "sample cloud");
+    viewer->addCoordinateSystem(0.2);
+    while (!viewer->wasStopped()) {
+        viewer->spinOnce(100);
+        boost::this_thread::sleep(boost::posix_time::microseconds(1000));
+    }
 
 
-    endTime = clock();
-    cout << "The run time is:" <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
     return 0;
 }
