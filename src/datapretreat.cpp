@@ -1,4 +1,4 @@
-#include "/home/qsy-5208/Documents/PointCloud_Segment/Code/include/datapretreat.h"
+#include "datapretreat.h"
 
 
 void datapretreat::ReadData(std::string &in_file, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud) {

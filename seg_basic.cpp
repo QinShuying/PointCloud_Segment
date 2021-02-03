@@ -54,7 +54,7 @@ int main (int argc, char** argv)
 
     // Save pcd
     pcl::PCDWriter writer;
-    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/Results/basic"+seq+".pcd", *cloud_filtered, false);
+    writer.write ("./result/basic"+seq+".pcd", *cloud_filtered, false);
 
 
     endTime = clock();
