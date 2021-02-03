@@ -18,7 +18,7 @@ int main (int argc, char** argv)
     // Load data points
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
     string seq = "01";
-    string filename = "/home/qsy-5208/Documents/PointCloud_Segment/Data/global_pcs/secen_pcd"+seq+".pcd";
+    string filename = "/home/qsy-5208/Documents/PointCloud_Segment/global_pcs/secen_pcd"+seq+".pcd";
     datapretreat d;
     d.ReadData(filename, cloud);
 
@@ -59,7 +59,7 @@ int main (int argc, char** argv)
     // Save pcd
     pcl::PCDWriter writer;
     pcl::PointCloud <pcl::PointXYZRGB>::Ptr colored_cloud = reg.getColoredCloud ();
-    writer.write ("./result/region"+seq+".pcd", *colored_cloud, false);
+    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/result/region"+seq+".pcd", *colored_cloud, false);
 
 
     endTime = clock();

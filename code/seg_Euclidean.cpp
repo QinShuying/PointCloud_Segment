@@ -18,7 +18,7 @@ int main (int argc, char** argv)
     // Load data points
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
     string seq = "01";
-    string filename = "/home/qsy-5208/Documents/PointCloud_Segment/Data/global_pcs/secen_pcd"+seq+".pcd";
+    string filename = "/home/qsy-5208/Documents/PointCloud_Segment/global_pcs/secen_pcd"+seq+".pcd";
     datapretreat d;
     d.ReadData(filename, cloud);
 
@@ -90,13 +90,13 @@ int main (int argc, char** argv)
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
         for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
             //设置保存点云的属性问题
-            cloud_cluster->points.push_back (cloud_filtered->points[*pit]); //*
+            cloud_cluster->points.push_back (cloud_filtered->points[*pit]);
         cloud_cluster->width = cloud_cluster->points.size ();
         cloud_cluster->height = 1;
         cloud_cluster->is_dense = true;
         pcl::PCDWriter writer;
         stringstream ss;
-        ss << "/home/qsy-5208/Documents/PointCloud_Segment/Results/Euclidean/"+seq+"/Euclidean_cloud_cluster_" << j << ".pcd";
+        ss << "/home/qsy-5208/Documents/PointCloud_Segment/result/Euclidean/"+seq+"/Euclidean_cloud_cluster_" << j << ".pcd";
         writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false);
         j++;
     }
@@ -104,7 +104,7 @@ int main (int argc, char** argv)
 
     // Save pcd
     pcl::PCDWriter writer;
-    writer.write ("./result/Euclidean"+seq+".pcd", *cloud_filtered, false);
+    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/result/Euclidean"+seq+".pcd", *cloud_filtered, false);
 
 
     endTime = clock();

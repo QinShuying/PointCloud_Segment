@@ -30,14 +30,14 @@ target_link_libraries(${PROJECT_NAME}
         ${catkin_LIBRARIES}
         )
 
-add_executable(seg_basic seg_basic.cpp)
+add_executable(seg_basic code/seg_basic.cpp)
 target_link_libraries(seg_basic ${PROJECT_NAME})
 
-add_executable(seg_region seg_region.cpp)
+add_executable(seg_region code/seg_region.cpp)
 target_link_libraries(seg_region ${PROJECT_NAME})
 
-add_executable(seg_Euclidean seg_Euclidean.cpp)
+add_executable(seg_Euclidean code/seg_Euclidean.cpp)
 target_link_libraries(seg_Euclidean ${PROJECT_NAME})
 
-add_executable(test test.cpp)
+add_executable(test code/test.cpp)
 target_link_libraries(test ${PROJECT_NAME})
