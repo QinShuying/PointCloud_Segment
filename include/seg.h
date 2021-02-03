@@ -2,6 +2,7 @@
 #define POINTCLOUD_SEGMENT_SEG_H
 
 #include <iostream>
+#include <cstdlib>
 #include <ctime>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
@@ -27,6 +28,8 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/segmentation/region_growing.h>
 
+
+char *gcvt(double value, int digits, char *buffer);
 
 using namespace std;
 
