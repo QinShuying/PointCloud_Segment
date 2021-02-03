@@ -19,25 +19,25 @@ include_directories(
         ${PCL_INCLUDE_DIRS}
 )
 
-link_directories(
-        include
-        ${PCL_LIBRARY_DIRS}
-)
-
 add_library(${PROJECT_NAME}
         SHARED
         src/datapretreat.cpp
         )
 
+target_link_libraries(${PROJECT_NAME}
+        ${PCL_LIBRARY_DIRS}
+        ${PCL_LIBRARIES}
+        ${catkin_LIBRARIES}
+        )
 
-#add_executable(seg_basic seg_basic.cpp)
-#target_link_libraries(seg_basic ${PCL_LIBRARIES})
-#
-#add_executable(seg_region seg_region.cpp)
-#target_link_libraries(seg_region ${PCL_LIBRARIES})
-#
-#add_executable(seg_Euclidean seg_Euclidean.cpp)
-#target_link_libraries(seg_Euclidean ${PCL_LIBRARIES})
+add_executable(seg_basic seg_basic.cpp)
+target_link_libraries(seg_basic ${PROJECT_NAME})
+
+add_executable(seg_region seg_region.cpp)
+target_link_libraries(seg_region ${PROJECT_NAME})
+
+add_executable(seg_Euclidean seg_Euclidean.cpp)
+target_link_libraries(seg_Euclidean ${PROJECT_NAME})
 
 add_executable(test test.cpp)
-target_link_libraries(test ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(test ${PROJECT_NAME})

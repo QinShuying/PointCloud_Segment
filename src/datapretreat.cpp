@@ -21,7 +21,3 @@ void datapretreat::ReadData(std::string &in_file, pcl::PointCloud<pcl::PointXYZ>
                   << " "    << cloud->points[i].z << endl;
     */
 }
-
-void datapretreat::test(void) {
-    cout << "tesst" << endl;
-}
