@@ -7,7 +7,7 @@
 
 
 #include "include/seg.h"
-#include "include/datapretreat.h"
+#include "include/planeSeg.h"
 #include "global_defination.h"
 #include "boost/thread.hpp"
 
@@ -17,17 +17,17 @@ int main (int argc, char** argv)
 
 
     // Load data points
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    PointCloudPtr cloud (new pcl::PointCloud<PointType>);
     string seq = "02";
     string filename = WORK_SPACE_PATH+"/global_pcs/secen_pcd"+seq+".pcd";
-    datapretreat d;
+    planeSeg d;
     d.ReadData(filename, cloud);
 
 
     clock_t startTime,endTime;
     startTime = clock();
     //设置搜索结构
-    pcl::search::Search<pcl::PointXYZ>::Ptr tree =  shared_ptr<pcl::search::Search<pcl::PointXYZ> > (new pcl::search::KdTree<pcl::PointXYZ>);
+    pcl::search::Search<PointType>::Ptr tree =  shared_ptr<pcl::search::Search<PointType> > (new pcl::search::KdTree<PointType>);
     //计算点法线
     pcl::PointCloud <pcl::Normal>::Ptr normals (new pcl::PointCloud <pcl::Normal>);
     pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normal_estimator;

@@ -29,7 +29,34 @@
 #include <pcl/segmentation/region_growing.h>
 
 
-char *gcvt(double value, int digits, char *buffer);
+enum SegmentType
+{
+    Euclidean,
+    RegionGrow,
+    Euclidean_Normal
+};
+
+enum DownSampleType
+{
+    Random,
+    Voxel
+};
+
+typedef struct{
+    DownSampleType type;
+    float voxelSize;
+    int randomNum;
+}DownSample;
+
+typedef struct{
+    SegmentType type;
+    int maxIters;
+    float threshold;
+}Segment;
+
+typedef pcl::PointXYZ PointType;
+
+typedef pcl::PointCloud<PointType>::Ptr PointCloudPtr;
 
 using namespace std;
 

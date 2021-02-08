@@ -23,7 +23,7 @@ include_directories(
 
 add_library(${PROJECT_NAME}
         SHARED
-        src/datapretreat.cpp
+        src/planeSeg.cpp
         )
 
 target_link_libraries(${PROJECT_NAME}

@@ -6,7 +6,7 @@
 
 
 #include "include/seg.h"
-#include "include/datapretreat.h"
+#include "include/planeSeg.h"
 #include "boost/thread.hpp"
 #include "global_defination.h"
 
@@ -15,31 +15,23 @@ int main (int argc, char** argv)
 {
     clock_t startTime,endTime;
     startTime = clock();
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr colored_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);     //最终结果
+    string filename = WORK_SPACE_PATH+"/data/pointcloud.pcd";
 
+    DownSample downsample={type:Voxel,randomNum:10000,voxelSize:0.01f};
+
+    Segment segment={type:Euclidean,maxIters:100,threshold:0.03f};
 
     // Load data points
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-    string seq = "02";
-//    string filename = "/home/qsy-5208/Documents/PointCloud_Segment/global_pcs/secen_pcd"+seq+".pcd";
-    string filename = WORK_SPACE_PATH+"/global_pcs/secen_pcd"+seq+".pcd";
-    datapretreat d;
-    d.ReadData(filename, cloud);
+    PlaneSegment plane_segment(segment, downsample);
+    plane_segment.ReadData(filename);
 
-
-    // 滤波重采样
-    pcl::VoxelGrid<pcl::PointXYZ> vg;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
-    vg.setInputCloud (cloud);
-    vg.setLeafSize (0.01f, 0.01f, 0.01f);
-    vg.filter (*cloud_filtered);
-    cout << "After filtering, point cloud->size: " << cloud_filtered->points.size () << endl;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr colored_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);     //最终结果
 
     // Euclidean Segment
     pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
     pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
 
-    pcl::SACSegmentation<pcl::PointXYZ> seg;
+    pcl::SACSegmentation<PointType> seg;
     seg.setOptimizeCoefficients (true);
     seg.setModelType (pcl::SACMODEL_PLANE);
     seg.setMethodType (pcl::SAC_RANSAC);
@@ -48,7 +40,7 @@ int main (int argc, char** argv)
     seg.setDistanceThreshold (0.03);        //阀值
 
     // 每一次循环提取一个平面
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZ>);
+    PointCloudPtr cloud_plane (new pcl::PointCloud<PointType>);
     *cloud_plane = *cloud_filtered;
     int nr_points = (int) cloud_filtered->points.size ();   //降采样后剩余点云数量
     int r, g, b;
@@ -65,7 +57,7 @@ int main (int argc, char** argv)
         }
 
         // 提取平面模型内点
-        pcl::ExtractIndices<pcl::PointXYZ> extract;
+        pcl::ExtractIndices<PointType> extract;
         extract.setInputCloud (cloud_filtered);
         extract.setIndices (inliers);
         extract.setNegative (false);
@@ -89,17 +81,17 @@ int main (int argc, char** argv)
 
         // 过滤平面点，得到剩余点云
         extract.setNegative (true);
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
+        PointCloudPtr cloud_f (new pcl::PointCloud<PointType>);
         extract.filter (*cloud_f);
         *cloud_filtered = *cloud_f;
     }
 
 
     // 创建用于提取搜索方法的kdtree树对象
-    pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+    pcl::search::KdTree<PointType>::Ptr tree (new pcl::search::KdTree<PointType>);
     tree->setInputCloud (cloud_filtered);
     std::vector<pcl::PointIndices> cluster_indices;
-    pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
+    pcl::EuclideanClusterExtraction<PointType> ec;
     ec.setClusterTolerance (1);            //近邻搜索半径
     ec.setMinClusterSize (100);         //最小聚类点数
     ec.setMaxClusterSize (25000);       //最大
@@ -111,7 +103,7 @@ int main (int argc, char** argv)
     int j = 0;
     for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
     { //迭代容器中的点云的索引，并且分开保存索引的点云
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+        PointCloudPtr cloud_cluster (new pcl::PointCloud<PointType>);
         for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
             cloud_cluster->points.push_back (cloud_filtered->points[*pit]);
         cloud_cluster->width = cloud_cluster->points.size ();
@@ -144,9 +136,7 @@ int main (int argc, char** argv)
     pcl::PCDWriter writer;
     colored_cloud->height = 1;
     colored_cloud->width = colored_cloud->size();
-    char buffer[20];
-    gcvt(DistanceThreshold, 3, buffer);
-    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/result/Euclidean"+seq+"_Dis"+buffer+".pcd", *colored_cloud, false);
+    writer.write ("/home/qsy-5208/Documents/PointCloud_Segment/result/Euclidean"+seq+"_Dis"+".pcd", *colored_cloud, false);
 
     // Visualize
     boost::shared_ptr< pcl::visualization::PCLVisualizer > viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
