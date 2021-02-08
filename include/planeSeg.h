@@ -8,17 +8,28 @@ class PlaneSegment {
 
 public:
 
-    PlaneSegment(Segment segment, DownSample downsample);
+    PlaneSegment(Segment segment, DownSample downsample, bool visualize = false);
 
     void ReadData(std::string &in_file);
 
-    void VoxelDownSample(const PointCloudPtr& cloudIn,const PointCloudPtr& cloudOut, float voxel=0.01);
+    void VoxelDownSample();
 
-    void SegOnePlane(const PointCloudPtr& cloudIn, PointCloudPtr& cloudLeave, PointCloudPtr& cloudPlane);
+    void SegOnePlane(const PointCloudPtr &cloudIn, PointCloudPtr &cloudLeave, PointCloudPtr &cloudPlane);
+
+    void SegOnePlaneWithNormal(const PointCloudPtr &cloudIn, const pcl::PointCloud<pcl::Normal>::Ptr nomalIn,
+                               PointCloudPtr &cloudLeave, pcl::PointCloud<pcl::Normal>::Ptr nomalLeave,
+                               PointCloudPtr &cloudPlane, pcl::PointCloud<pcl::Normal>::Ptr nomalPlane);
 
     void SegmentPlanes();
 
     void EuclideanSegment();
+
+    void Visualize();
+
+    void RegionGrowSeg();
+
+    void EuclideanNormalSeg();
+
 private:
     PointCloudPtr _cloud;
 
@@ -29,6 +40,8 @@ private:
     Segment _segment;
 
     DownSample _downsample;
+
+    bool _bVisual;
 };
 
 

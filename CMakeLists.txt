@@ -33,8 +33,11 @@ target_link_libraries(${PROJECT_NAME}
         ${Boost_LIBRARIES}
         )
 
-add_executable(seg_region code/seg_region.cpp)
+add_executable(seg_region exec/RegionGrow.cpp)
 target_link_libraries(seg_region ${PROJECT_NAME})
 
-add_executable(seg_Euclidean code/seg_Euclidean.cpp)
+add_executable(seg_Euclidean exec/Euclidean.cpp)
 target_link_libraries(seg_Euclidean ${PROJECT_NAME})
+
+add_executable(EuclideanNormal exec/EuclideanNormal.cpp)
+target_link_libraries(EuclideanNormal ${PROJECT_NAME})
